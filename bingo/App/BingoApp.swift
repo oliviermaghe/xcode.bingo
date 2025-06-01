@@ -8,10 +8,17 @@
 import SwiftUI
 
 @main
-struct BingoApp: App {
+struct bingoApp: App {
+    @StateObject var model = BingoModel()
+
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        WindowGroup("Contrôle") {
+            ContentView(model: model)
+        }
+
+        WindowGroup("Grille des tirages") {
+            GridOnlyView(model: model)
         }
     }
 }
+

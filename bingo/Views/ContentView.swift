@@ -8,53 +8,34 @@
 import SwiftUI
 
 struct ContentView: View {
-    let maxNumber = 90
-    @State private var drawnNumbers: [Int] = []
+    @ObservedObject var model: BingoModel
     @State private var showResetAlert = false
-
-    func reset() {
-        drawnNumbers.removeAll()
-    }
-
-    func drawNumber() {
-        let availableNumbers = (1...maxNumber).filter { !drawnNumbers.contains($0) }
-        guard let newNumber = availableNumbers.randomElement() else { return }
-        withAnimation {
-            drawnNumbers.append(newNumber)
-        }
-    }
-
-    func toggleNumber(_ num: Int) {
-        if let index = drawnNumbers.firstIndex(of: num) {
-            drawnNumbers.remove(at: index)
-        } else {
-            drawnNumbers.insert(num, at: 0)
-        }
-    }
 
     var body: some View {
         VStack(spacing: 20) {
             let columns = Array(repeating: GridItem(.fixed(25), spacing: 10), count: 10)
             LazyVGrid(columns: columns, spacing: 10) {
-                ForEach(1...maxNumber, id: \.self) { num in
+                ForEach(1...model.maxNumber, id: \.self) { num in
                     BallView(
                         number: num,
-                        isDrawn: drawnNumbers.contains(num)
+                        isDrawn: model.drawnNumbers.contains(num)
                     ) {
-                        toggleNumber(num)
+                        model.toggleNumber(num)
                     }
                 }
+                .frame(width: 30, height: 30) // <-- taille fixe ici
+
             }
 
-            Button(action: drawNumber) {
+            Button(action: model.drawNumber) {
                 Text("Tirage aléatoire")
                     .bold()
                     .padding()
                     .foregroundColor(.white)
             }
             .background(
-                drawnNumbers.count <= 10 ? Color.green :
-                drawnNumbers.count <= 20 ? Color.orange :
+                model.drawnNumbers.count <= 10 ? Color.green :
+                model.drawnNumbers.count <= 20 ? Color.orange :
                 Color.red
             )
             .cornerRadius(10)
@@ -62,10 +43,10 @@ struct ContentView: View {
 
             Divider()
 
-            Label("Sorties", systemImage: "numbers.rectangle.fill")
+            Label("Historique", systemImage: "numbers.rectangle.fill")
                 .foregroundColor(.blue)
 
-            Text(drawnNumbers.map { String($0) }.joined(separator: " - "))
+            Text(model.drawnNumbers.map { String($0) }.joined(separator: " - "))
                 .lineLimit(nil)
                 .multilineTextAlignment(.leading)
                 .frame(alignment: .leading)
@@ -82,33 +63,45 @@ struct ContentView: View {
                 .background(Color.gray)
                 .cornerRadius(3)
                 .buttonStyle(.plain)
-                
-                Button(action:reset) {
-                    Text("admin")
+
+                Button("admin") {
+                    model.reset()
                 }
                 .padding(EdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 10))
                 .foregroundColor(.white)
                 .background(Color.gray)
                 .cornerRadius(3)
-                .buttonStyle(.plain)            }
-            
-
-
-        } // <-- fin VStack
-
+                .buttonStyle(.plain)
+                
+                Button(action: {
+                    // Simple clic : affiche la fenêtre
+                    GridWindowController.show(model: model)
+                }) {
+                    Text("Ecran secondaire")
+                }
+                .simultaneousGesture(
+                    TapGesture(count: 2)
+                        .onEnded {
+                            // Double clic : bascule plein écran
+                            GridWindowController.toggleFullScreen()
+                        }
+                )
+                .padding(EdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 10))
+                    .foregroundColor(.white)
+                    .background(Color.gray)
+                    .cornerRadius(3)
+                    .buttonStyle(.plain)
+            }
+        }
         .frame(maxHeight: .infinity, alignment: .top)
         .padding()
         .alert("Confirmation", isPresented: $showResetAlert) {
             Button("Annuler", role: .cancel) {}
             Button("Confirmer", role: .destructive) {
-                reset()
+                model.reset()
             }
         } message: {
             Text("Es-tu certain de vouloir tout réinitialiser ?")
         }
     }
-}
-
-#Preview {
-    ContentView()
 }
