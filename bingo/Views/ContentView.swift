@@ -28,7 +28,7 @@ struct ContentView: View {
             }
 
             Button(action: model.drawNumber) {
-                Text("Tirage aléatoire")
+                Text("Tirage")
                     .bold()
                     .padding()
                     .foregroundColor(.white)
