@@ -43,7 +43,7 @@ struct ContentView: View {
 
             Divider()
 
-            Label("Historique", systemImage: "numbers.rectangle.fill")
+            Label("Historique des tirages", systemImage: "numbers.rectangle.fill")
                 .foregroundColor(.blue)
 
             Text(model.drawnNumbers.map { String($0) }.joined(separator: " - "))
